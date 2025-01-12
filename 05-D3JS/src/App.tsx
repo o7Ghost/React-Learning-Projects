@@ -1,12 +1,21 @@
-import { SingleCircleD3, RandonCircles } from "./components";
+import { SingleCircleD3, RandonCircles, AnimatedCircles } from "./components";
+
+const style = {
+  display: "flex",
+  height: "200px",
+  width: "100%",
+};
 function App() {
   return (
     <>
-      <div>
+      <div style={style}>
         <SingleCircleD3 />
       </div>
-      <div>
+      <div style={style}>
         <RandonCircles />
+      </div>
+      <div style={style}>
+        <AnimatedCircles />
       </div>
     </>
   );
