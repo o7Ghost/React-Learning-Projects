@@ -1,4 +1,9 @@
-import { SingleCircleD3, RandonCircles, AnimatedCircles } from "./components";
+import {
+  SingleCircleD3,
+  RandonCircles,
+  AnimatedCircles,
+  Axis,
+} from "./components";
 
 const style = {
   display: "flex",
@@ -16,6 +21,9 @@ function App() {
       </div>
       <div style={style}>
         <AnimatedCircles />
+      </div>
+      <div style={style}>
+        <Axis />
       </div>
     </>
   );

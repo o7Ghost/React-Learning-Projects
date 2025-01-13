@@ -25,8 +25,8 @@ export const RandonCircles = () => {
 
   return (
     <svg viewBox="0 0 100 50">
-      {dataSets.map((position) => {
-        return <circle cx={position.x} cy={position.y} r="3" />;
+      {dataSets.map((position, index) => {
+        return <circle key={index} cx={position.x} cy={position.y} r="3" />;
       })}
     </svg>
   );
