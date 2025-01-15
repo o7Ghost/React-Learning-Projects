@@ -3,6 +3,7 @@ import {
   RandonCircles,
   AnimatedCircles,
   Axis,
+  ChartWithDimensions,
 } from "./components";
 
 const style = {
@@ -10,6 +11,7 @@ const style = {
   height: "200px",
   width: "100%",
 };
+
 function App() {
   return (
     <>
@@ -25,6 +27,8 @@ function App() {
       <div style={style}>
         <Axis />
       </div>
+
+      <ChartWithDimensions />
     </>
   );
 }

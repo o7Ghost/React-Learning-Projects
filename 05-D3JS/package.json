@@ -11,6 +11,7 @@
     "compile": "pnpm tsc"
   },
   "dependencies": {
+    "@juggle/resize-observer": "^3.4.0",
     "@react-spring/web": "^9.7.5",
     "d3": "^7.9.0",
     "react": "^18.3.1",
