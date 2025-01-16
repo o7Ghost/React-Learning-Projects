@@ -1,9 +1,41 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as d3 from "d3";
+
+// using use axisbottom api
+export const AxisV2 = ({
+  domain = [0, 100],
+  range = [0, 600],
+}: {
+  domain?: [number, number];
+  range?: [number, number];
+}) => {
+  const ax = useRef<any>(null);
+
+  const width = range[1] - range[0];
+  const pixelsPerTick = 30;
+
+  const numberOfTicksTarget = Math.max(1, Math.floor(width / pixelsPerTick));
+  const xScale = d3.scaleLinear(domain, range);
+
+  useEffect(() => {
+    if (ax.current) {
+      d3.select(ax.current)
+        .transition()
+        .duration(100)
+        .call(d3.axisBottom(xScale).ticks(numberOfTicksTarget));
+    }
+  }, [ax, xScale]);
+
+  return (
+    <svg style={{ overflow: "visible" }}>
+      <g ref={ax} transform={`translate(0,0)`} />
+    </svg>
+  );
+};
 
 export const Axis = ({
   domain = [0, 100],
-  range = [0, 290],
+  range = [0, 500],
 }: {
   domain?: any;
   range?: any;

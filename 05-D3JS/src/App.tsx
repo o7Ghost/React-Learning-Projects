@@ -4,6 +4,7 @@ import {
   AnimatedCircles,
   Axis,
   ChartWithDimensions,
+  AxisV2,
 } from "./components";
 
 const style = {
@@ -27,8 +28,10 @@ function App() {
       <div style={style}>
         <Axis />
       </div>
-
       <ChartWithDimensions />
+      <div style={style}>
+        <AxisV2 />
+      </div>
     </>
   );
 }

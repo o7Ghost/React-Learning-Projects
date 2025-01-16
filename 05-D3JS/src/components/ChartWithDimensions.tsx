@@ -1,7 +1,7 @@
 import { LegacyRef, useEffect, useMemo, useRef, useState } from "react";
 import { ResizeObserver } from "@juggle/resize-observer";
 import * as d3 from "d3";
-import { Axis } from "./Axis";
+import { Axis, AxisV2 } from "./Axis";
 
 type Dimension = {
   width?: number;
@@ -104,7 +104,7 @@ export const ChartWithDimensions = () => {
             fill="lavender"
           />
           <g transform={`translate(${[0, dms.boundedHeight].join(",")})`}>
-            <Axis domain={xScale.domain()} range={xScale.range()} />
+            <AxisV2 range={[0, dms.boundedWidth]} />
           </g>
         </g>
       </svg>
