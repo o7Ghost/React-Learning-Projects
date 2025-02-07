@@ -6,6 +6,23 @@ const margin = { top: 30, right: 30, bottom: 50, left: 50 };
 const width = 700 - margin.left - margin.right;
 const height = 400 - margin.top - margin.bottom;
 
+const data = [
+  { x: "2023-01-01", y: 90 },
+  { x: "2023-02-01", y: 12 },
+  { x: "2023-03-01", y: 34 },
+  { x: "2023-04-01", y: 53 },
+  { x: "2023-05-01", y: 52 },
+  { x: "2023-06-01", y: 9 },
+  { x: "2023-07-01", y: 18 },
+  { x: "2023-08-01", y: 78 },
+  { x: "2023-09-01", y: 28 },
+  { x: "2023-12-01", y: 34 },
+];
+
+type DataPoint = { x: string; y: number };
+
+const customTimeParser = d3.timeParse("%Y-%m-%d");
+
 export const TimeSeriesPlot = () => {
   const xAxis = useRef<any>(null);
   const yAxis = useRef<any>(null);
@@ -31,16 +48,40 @@ export const TimeSeriesPlot = () => {
     }
   }, [yAxis, yScale]);
 
+  const lineBuilder = d3
+    .line<DataPoint>()
+    .x((d: DataPoint) => xScale(customTimeParser(d.x) as any))
+    .y((d) => yScale(d.y));
+
+  const linePath = lineBuilder(data);
+
+  if (!linePath) {
+    return null;
+  }
+
   return (
     <div>
       <svg width={1000} height={1000} style={{ display: "inline-block" }}>
         <g
+          width={300}
+          height={300}
+          transform={`translate(${[margin.left, 700].join(",")})`}
+        >
+          <path
+            d={linePath}
+            opacity={1}
+            stroke="#9a6fb0"
+            fill="none"
+            strokeWidth={2}
+          />
+        </g>
+        <g
           ref={xAxis}
-          transform={`translate(${[margin.left, 350].join(",")})`}
+          transform={`translate(${[margin.left, 700].join(",")})`}
         />
         <g
           ref={yAxis}
-          transform={`translate(${[margin.left, margin.top].join(",")})`}
+          transform={`translate(${[margin.left, 380].join(",")})`}
         />
       </svg>
     </div>
