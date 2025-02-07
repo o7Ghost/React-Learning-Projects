@@ -27,14 +27,17 @@ export const TimeSeriesPlot = () => {
 
   useEffect(() => {
     if (yAxis.current) {
-      d3.select(xAxis.current).call(d3.axisLeft(yScale));
+      d3.select(yAxis.current).call(d3.axisLeft(yScale));
     }
   }, [yAxis, yScale]);
 
   return (
     <div>
-      <svg width={width} height={height} style={{ overflow: "visible" }}>
-        {/* <g ref={xAxis} transform={`translate(50, 700)`} /> */}
+      <svg width={1000} height={1000} style={{ display: "inline-block" }}>
+        <g
+          ref={xAxis}
+          transform={`translate(${[margin.left, 350].join(",")})`}
+        />
         <g
           ref={yAxis}
           transform={`translate(${[margin.left, margin.top].join(",")})`}
