@@ -28,11 +28,12 @@ export const TimeSeriesPlot = () => {
   const yAxis = useRef<any>(null);
 
   const xScale = d3.scaleTime(
-    [new Date("2020-12-01"), new Date("2023-06-01")],
+    [new Date("2021-12-01"), new Date("2023-11-31")],
     [0, width]
   );
 
-  const yScale = d3.scaleLinear([0, 10], [height, 0]);
+  const max = d3.max(data, (d) => d.y);
+  const yScale = d3.scaleLinear([0, max ?? 0], [height, 0]);
 
   useEffect(() => {
     if (xAxis.current) {
@@ -65,7 +66,7 @@ export const TimeSeriesPlot = () => {
         <g
           width={300}
           height={300}
-          transform={`translate(${[margin.left, 700].join(",")})`}
+          transform={`translate(${[margin.left, 380].join(",")})`}
         >
           <path
             d={linePath}

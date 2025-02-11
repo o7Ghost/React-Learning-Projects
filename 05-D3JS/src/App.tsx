@@ -17,7 +17,7 @@ const style = {
 function App() {
   return (
     <>
-      {/* <div style={style}>
+      <div style={style}>
         <SingleCircleD3 />
       </div>
       <div style={style}>
@@ -32,7 +32,7 @@ function App() {
       <ChartWithDimensions />
       <div style={style}>
         <AxisV2 />
-      </div> */}
+      </div>
       <TimeSeriesPlot />
     </>
   );
