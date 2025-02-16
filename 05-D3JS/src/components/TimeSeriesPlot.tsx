@@ -1,5 +1,6 @@
 import * as d3 from "d3";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSpring, animated } from "@react-spring/web";
 
 const margin = { top: 30, right: 30, bottom: 50, left: 50 };
 
@@ -23,7 +24,45 @@ type DataPoint = { x: string; y: number };
 
 const customTimeParser = d3.timeParse("%Y-%m-%d");
 
+type CursorProps = {
+  x: number | null;
+  y: number;
+  height: number;
+  color: string;
+};
+
+const Cursor = ({ x, y, height, color }: CursorProps) => {
+  const springProps = useSpring({
+    to: {
+      x,
+      y,
+    },
+  });
+
+  if (!springProps.x) {
+    return null;
+  }
+
+  const xAxix = springProps.x as any;
+
+  return (
+    <>
+      <animated.line
+        x1={xAxix}
+        x2={xAxix}
+        y1={0}
+        y2={height}
+        stroke="black"
+        strokeWidth={1}
+      />
+      <circle cx={x ?? 0} cy={y} r={5} fill={color} />
+    </>
+  );
+};
+
 export const TimeSeriesPlot = () => {
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+
   const xAxis = useRef<any>(null);
   const yAxis = useRef<any>(null);
 
@@ -34,6 +73,47 @@ export const TimeSeriesPlot = () => {
 
   const max = d3.max(data, (d) => d.y);
   const yScale = d3.scaleLinear([0, max ?? 0], [height, 0]);
+
+  const getClosestPoint = (cursorPosition: number) => {
+    // Given a value from the range,
+    // returns the corresponding value from the domain
+    const x = xScale.invert(cursorPosition) as any;
+
+    // console.log("invert", x);
+    // console.log("regular", cursorPosition);
+
+    let minDistance = Infinity;
+    let closest: DataPoint | null = null;
+
+    for (const point of data) {
+      // Convert both dates to timestamps
+      const pointDate = new Date(point.x).getTime();
+      const xDate = x.getTime();
+
+      // Calculate the absolute difference in time
+      const distance = Math.abs(pointDate - xDate);
+
+      // Check if this point is closer than the previous closest
+      if (distance < minDistance) {
+        minDistance = distance;
+        closest = point;
+      }
+    }
+
+    return closest;
+  };
+
+  const onMouseMove = (e: React.MouseEvent<SVGRectElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+
+    const closest = getClosestPoint(mouseX);
+
+    console.log(xScale(new Date(closest?.x ?? 0)));
+    // console.log(xScale(closest.x));
+
+    setCursorPosition(xScale(new Date(closest?.x ?? 0)));
+  };
 
   useEffect(() => {
     if (xAxis.current) {
@@ -68,12 +148,30 @@ export const TimeSeriesPlot = () => {
           height={300}
           transform={`translate(${[margin.left, 380].join(",")})`}
         >
+          {cursorPosition && (
+            <Cursor
+              height={height}
+              x={cursorPosition}
+              y={yScale(getClosestPoint(cursorPosition)?.y ?? 0)}
+              color={"#9a6fb0"}
+            />
+          )}
           <path
             d={linePath}
             opacity={1}
             stroke="#9a6fb0"
             fill="none"
             strokeWidth={2}
+          />
+          <rect
+            x={0}
+            y={0}
+            width={700}
+            height={380}
+            onMouseMove={onMouseMove}
+            onMouseLeave={() => setCursorPosition(null)}
+            visibility={"hidden"}
+            pointerEvents={"all"}
           />
         </g>
         <g
