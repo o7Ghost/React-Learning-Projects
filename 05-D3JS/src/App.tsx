@@ -6,6 +6,7 @@ import {
   ChartWithDimensions,
   AxisV2,
   TimeSeriesPlot,
+  CandleSticksChart,
 } from "./components";
 
 const style = {
@@ -34,6 +35,7 @@ function App() {
         <AxisV2 />
       </div>
       <TimeSeriesPlot />
+      <CandleSticksChart />
     </>
   );
 }

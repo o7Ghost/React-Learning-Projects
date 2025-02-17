@@ -4,3 +4,4 @@ export { RandonCircles } from "./RandomCircles";
 export { AnimatedCircles } from "./AnimatedCircles";
 export { ChartWithDimensions } from "./ChartWithDimensions";
 export { TimeSeriesPlot } from "./TimeSeriesPlot";
+export { CandleSticksChart } from "./candlestickChart";
