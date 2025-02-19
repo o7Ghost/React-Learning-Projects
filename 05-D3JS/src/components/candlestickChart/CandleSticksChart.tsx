@@ -117,14 +117,25 @@ const styles = getStyles();
 //   };
 
 export const CandleSticksChart = () => {
-  const xAxis = useRef<any>(null);
+  const xAxis = useRef<SVGGElement | null>(null);
+  const yAxis = useRef<SVGGElement | null>(null);
 
   const xScale = d3.scaleTime(
     [styles.xZoomRange1, styles.xZoomRange2],
     [0, styles.svgWidth]
   );
 
+  const yAxisDomain = d3
+    .extent([
+      ...(data.map((x) => x.high) ?? 0),
+      ...(data.map((x) => x.low) ?? 1),
+    ])
+    .reverse() as [number, number];
+
+  const yScale = d3.scaleLinear(yAxisDomain, [0, styles.svgHeight]);
+
   useEffect(() => {
+    console.log(styles.svgWidth);
     if (xAxis.current) {
       d3.select(xAxis.current)
         .call(
@@ -136,7 +147,14 @@ export const CandleSticksChart = () => {
         .select(".domain")
         .remove();
     }
-  }, [xAxis, xScale]);
+
+    if (yAxis.current) {
+      d3.select(yAxis.current)
+        .call(d3.axisRight(yScale).tickSize(styles.svgWidth))
+        .select(".domain")
+        .remove();
+    }
+  }, [xAxis, xScale, yAxis, yScale]);
 
   return (
     <div
@@ -154,7 +172,8 @@ export const CandleSticksChart = () => {
           cursor: "crosshair",
         }}
       >
-        <g ref={xAxis} transform={`translate(0, 10)`} />
+        <g ref={xAxis} transform={`translate(0, 20)`} />
+        <g ref={yAxis} transform={`translate(5, 0)`} />
       </svg>
     </div>
   );
