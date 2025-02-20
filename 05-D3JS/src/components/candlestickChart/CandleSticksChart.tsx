@@ -65,7 +65,7 @@ const getStyles = () => {
   const paddingRight = yLabelWidth;
   const minMaxDate = d3.extent(data.map((x) => parseDate(x.date)));
   const candleWidthDate = calculateCandleWidthDate(data);
-
+  const candleTailWidth = 1;
   console.log(candleWidthDate);
 
   return {
@@ -80,6 +80,7 @@ const getStyles = () => {
     svgHeight: height - (paddingTop + paddingBottom + 6),
     xZoomRange1: (minMaxDate[0]?.getTime() as number) - candleWidthDate / 2,
     xZoomRange2: (minMaxDate[1]?.getTime() as number) - candleWidthDate / 2,
+    candleTailWidth,
   };
 };
 
@@ -119,6 +120,7 @@ const styles = getStyles();
 export const CandleSticksChart = () => {
   const xAxis = useRef<SVGGElement | null>(null);
   const yAxis = useRef<SVGGElement | null>(null);
+  const candleContainerRef = useRef<SVGGElement | null>(null);
 
   const xScale = d3.scaleTime(
     [styles.xZoomRange1, styles.xZoomRange2],
@@ -154,10 +156,29 @@ export const CandleSticksChart = () => {
         .select(".domain")
         .remove();
     }
-  }, [xAxis, xScale, yAxis, yScale]);
+
+    if (candleContainerRef.current) {
+      d3.select(candleContainerRef.current)
+        .selectAll()
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("x", (d) => {
+          // console.log("Data", xScale(parseDate(d.date)));
+          return xScale(parseDate(d.date)) - styles.candleTailWidth / 2;
+        })
+        .attr("y", (d) => {
+          console.log("price", d.high);
+          return yScale(d.high);
+        });
+    }
+  }, [xAxis, xScale, yAxis, yScale, candleContainerRef]);
 
   return (
     <div
+      id="main"
       style={{
         height: styles.height,
         width: styles.width,
@@ -172,6 +193,7 @@ export const CandleSticksChart = () => {
           cursor: "crosshair",
         }}
       >
+        <g ref={candleContainerRef} />
         <g ref={xAxis} transform={`translate(0, 20)`} />
         <g ref={yAxis} transform={`translate(5, 0)`} />
       </svg>
