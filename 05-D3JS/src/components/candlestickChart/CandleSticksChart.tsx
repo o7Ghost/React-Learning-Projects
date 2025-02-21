@@ -241,10 +241,10 @@ export const CandleSticksChart = () => {
           cursor: "crosshair",
         }}
       >
-        <g ref={candleHighWickContainerRef} />
-        <g ref={candleStickBodyContainerRef} />
         <g ref={xAxis} transform={`translate(0, 10)`} />
         <g ref={yAxis} transform={`translate(5, 0)`} />
+        <g ref={candleHighWickContainerRef} />
+        <g ref={candleStickBodyContainerRef} />
       </svg>
     </div>
   );
