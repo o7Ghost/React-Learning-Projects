@@ -27,6 +27,7 @@ import { useEffect, useRef } from "react";
 
 const parseDate = (dateStr: string) => new Date(dateStr);
 
+// find the min distance between two times and use that as r width
 const calculateCandleWidthDate = (filteredData: StockType[]) => {
   const times = filteredData.map((x) => x.date).sort();
   let indexes = [0, 1];
@@ -84,6 +85,8 @@ const getStyles = () => {
     candleTailWidth,
     upCandlesTail: "#089981",
     downCandlesTail: "#e13443",
+    upCandlesStroke: "#089981",
+    downCandlesStroke: "#e13443",
   };
 };
 
@@ -123,7 +126,8 @@ const styles = getStyles();
 export const CandleSticksChart = () => {
   const xAxis = useRef<SVGGElement | null>(null);
   const yAxis = useRef<SVGGElement | null>(null);
-  const candleContainerRef = useRef<SVGGElement | null>(null);
+  const candleHighWickContainerRef = useRef<SVGGElement | null>(null);
+  const candleStickBodyContainerRef = useRef<SVGGElement | null>(null);
 
   const xScale = d3.scaleTime(
     [styles.xZoomRange1, styles.xZoomRange2],
@@ -160,8 +164,8 @@ export const CandleSticksChart = () => {
         .remove();
     }
 
-    if (candleContainerRef.current) {
-      d3.select(candleContainerRef.current)
+    if (candleHighWickContainerRef.current) {
+      d3.select(candleHighWickContainerRef.current)
         .selectAll()
         .data(data)
         .enter()
@@ -174,18 +178,51 @@ export const CandleSticksChart = () => {
             : yScale(d.close) - yScale(d.high);
         })
         .attr("x", (d) => {
-          // console.log("Data", xScale(parseDate(d.date)));
           return xScale(parseDate(d.date)) - styles.candleTailWidth / 2;
         })
         .attr("y", (d) => {
-          // console.log(d.high, yScale(d.high));
           return yScale(d.high);
         })
         .attr("fill", (d) =>
           d.open < d.close ? styles.upCandlesTail : styles.downCandlesTail
         );
     }
-  }, [xAxis, xScale, yAxis, yScale, candleContainerRef]);
+
+    if (candleStickBodyContainerRef.current) {
+      d3.select(candleStickBodyContainerRef.current)
+        .selectAll()
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("width", 5)
+        .attr("height", (d) => {
+          return d.open > d.close
+            ? yScale(d.close) - yScale(d.open)
+            : yScale(d.open) - yScale(d.close);
+        })
+        .attr("x", (d) => {
+          return xScale(parseDate(d.date)) - 5 / 2;
+        })
+        .attr("y", (d) => {
+          return d.open > d.close ? yScale(d.open) : yScale(d.close);
+        })
+        .attr("stroke", (d) => {
+          return d.open > d.close
+            ? styles.downCandlesStroke
+            : styles.upCandlesStroke;
+        })
+        .attr("fill", (d) =>
+          d.open < d.close ? styles.upCandlesTail : styles.downCandlesTail
+        );
+    }
+  }, [
+    xAxis,
+    xScale,
+    yAxis,
+    yScale,
+    candleHighWickContainerRef,
+    candleStickBodyContainerRef,
+  ]);
 
   return (
     <div
@@ -204,7 +241,8 @@ export const CandleSticksChart = () => {
           cursor: "crosshair",
         }}
       >
-        <g ref={candleContainerRef} />
+        <g ref={candleHighWickContainerRef} />
+        <g ref={candleStickBodyContainerRef} />
         <g ref={xAxis} transform={`translate(0, 10)`} />
         <g ref={yAxis} transform={`translate(5, 0)`} />
       </svg>
