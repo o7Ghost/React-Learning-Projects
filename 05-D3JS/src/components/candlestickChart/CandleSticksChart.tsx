@@ -66,7 +66,8 @@ const getStyles = () => {
   const minMaxDate = d3.extent(data.map((x) => parseDate(x.date)));
   const candleWidthDate = calculateCandleWidthDate(data);
   const candleTailWidth = 1;
-  console.log(candleWidthDate);
+
+  console.log("padding", width - (paddingLeft + paddingRight) - 2);
 
   return {
     width, // container screen width
@@ -81,6 +82,8 @@ const getStyles = () => {
     xZoomRange1: (minMaxDate[0]?.getTime() as number) - candleWidthDate / 2,
     xZoomRange2: (minMaxDate[1]?.getTime() as number) - candleWidthDate / 2,
     candleTailWidth,
+    upCandlesTail: "#089981",
+    downCandlesTail: "#e13443",
   };
 };
 
@@ -137,7 +140,6 @@ export const CandleSticksChart = () => {
   const yScale = d3.scaleLinear(yAxisDomain, [0, styles.svgHeight]);
 
   useEffect(() => {
-    console.log(styles.svgWidth);
     if (xAxis.current) {
       d3.select(xAxis.current)
         .call(
@@ -151,6 +153,7 @@ export const CandleSticksChart = () => {
     }
 
     if (yAxis.current) {
+      // console.log("width", styles.svgWidth);
       d3.select(yAxis.current)
         .call(d3.axisRight(yScale).tickSize(styles.svgWidth))
         .select(".domain")
@@ -163,16 +166,24 @@ export const CandleSticksChart = () => {
         .data(data)
         .enter()
         .append("rect")
-        .attr("width", 10)
-        .attr("height", 10)
+        .attr("width", styles.candleTailWidth)
+        .attr("height", (d) => {
+          console.log(yScale(d.open) + " " + yScale(d.high));
+          return d.open > d.close
+            ? yScale(d.open) - yScale(d.high)
+            : yScale(d.close) - yScale(d.high);
+        })
         .attr("x", (d) => {
           // console.log("Data", xScale(parseDate(d.date)));
           return xScale(parseDate(d.date)) - styles.candleTailWidth / 2;
         })
         .attr("y", (d) => {
-          console.log("price", d.high);
+          // console.log(d.high, yScale(d.high));
           return yScale(d.high);
-        });
+        })
+        .attr("fill", (d) =>
+          d.open < d.close ? styles.upCandlesTail : styles.downCandlesTail
+        );
     }
   }, [xAxis, xScale, yAxis, yScale, candleContainerRef]);
 
@@ -194,7 +205,7 @@ export const CandleSticksChart = () => {
         }}
       >
         <g ref={candleContainerRef} />
-        <g ref={xAxis} transform={`translate(0, 20)`} />
+        <g ref={xAxis} transform={`translate(0, 10)`} />
         <g ref={yAxis} transform={`translate(5, 0)`} />
       </svg>
     </div>
