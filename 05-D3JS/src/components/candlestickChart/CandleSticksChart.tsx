@@ -4,27 +4,6 @@ import { StockType } from "./stockData";
 import { useEffect, useRef } from "react";
 
 // TODO: Layout understand this and convert to react
-
-// #createLayout() {
-//     d3.select(`#${this.id}`)
-//       .style(
-//         'padding',
-//         `${this.#config.paddingTop}px ${this.#config.paddingRight}px ${
-//           this.#config.paddingBottom
-//         }px ${this.#config.paddingLeft}px`
-//       )
-//       .style('display', 'inline-block')
-//       .attr('width', this.#config.width)
-//       .attr('height', this.#config.height)
-//       .append('svg')
-//       .attr('width', this.#config.svgWidth)
-//       .attr('height', this.#config.svgHeight)
-//       .style('overflow', 'inherit')
-//       .style('cursor', 'crosshair')
-//       .attr('id', this.#objectIDs.svgId)
-//       .style('margin-top', '-50px');
-//   }
-
 const parseDate = (dateStr: string) => new Date(dateStr);
 
 // find the min distance between two times and use that as r width
@@ -128,6 +107,7 @@ export const CandleSticksChart = () => {
   const yAxis = useRef<SVGGElement | null>(null);
   const candleHighWickContainerRef = useRef<SVGGElement | null>(null);
   const candleStickBodyContainerRef = useRef<SVGGElement | null>(null);
+  const candleLowerWickContainerRef = useRef<SVGGElement | null>(null);
 
   const xScale = d3.scaleTime(
     [styles.xZoomRange1, styles.xZoomRange2],
@@ -215,6 +195,29 @@ export const CandleSticksChart = () => {
           d.open < d.close ? styles.upCandlesTail : styles.downCandlesTail
         );
     }
+
+    if (candleLowerWickContainerRef.current) {
+      d3.select(candleLowerWickContainerRef.current)
+        .selectAll()
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("width", styles.candleTailWidth)
+        .attr("height", (d) => {
+          return d.open > d.close
+            ? yScale(d.low) - yScale(d.close)
+            : yScale(d.low) - yScale(d.open);
+        })
+        .attr("x", (d) => {
+          return xScale(parseDate(d.date)) - styles.candleTailWidth / 2;
+        })
+        .attr("y", (d) => {
+          return d.open > d.close ? yScale(d.close) : yScale(d.open);
+        })
+        .attr("fill", (d) =>
+          d.open < d.close ? styles.upCandlesTail : styles.downCandlesTail
+        );
+    }
   }, [
     xAxis,
     xScale,
@@ -245,6 +248,7 @@ export const CandleSticksChart = () => {
         <g ref={yAxis} transform={`translate(5, 0)`} />
         <g ref={candleHighWickContainerRef} />
         <g ref={candleStickBodyContainerRef} />
+        <g ref={candleLowerWickContainerRef} />
       </svg>
     </div>
   );
