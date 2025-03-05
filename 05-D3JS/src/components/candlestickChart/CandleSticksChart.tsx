@@ -117,7 +117,7 @@ const getStyles = () => {
   const candleWidthDate = calculateCandleWidthDate(data);
   const candleTailWidth = 1;
 
-  console.log("padding", width - (paddingLeft + paddingRight) - 2);
+  // console.log("padding", width - (paddingLeft + paddingRight) - 2);
 
   return {
     width, // container screen width
@@ -227,10 +227,10 @@ export const CandleSticksChart = () => {
 
     if (candleHighWickContainerRef.current) {
       d3.select(candleHighWickContainerRef.current)
-        .selectAll()
+        .selectAll("rect")
         .data(zoomRange.dataRange)
-        .enter()
-        .append("rect")
+        // .enter()
+        .join("rect")
         .attr("width", styles.candleTailWidth)
         .attr("height", (d) => {
           return d.open > d.close
@@ -250,10 +250,10 @@ export const CandleSticksChart = () => {
 
     if (candleStickBodyContainerRef.current) {
       d3.select(candleStickBodyContainerRef.current)
-        .selectAll()
+        .selectAll("rect")
         .data(zoomRange.dataRange)
-        .enter()
-        .append("rect")
+        // .enter()
+        .join("rect")
         .attr("width", 5)
         .attr("height", (d) => {
           return d.open > d.close
@@ -278,10 +278,10 @@ export const CandleSticksChart = () => {
 
     if (candleLowerWickContainerRef.current) {
       d3.select(candleLowerWickContainerRef.current)
-        .selectAll()
+        .selectAll("rect")
         .data(zoomRange.dataRange)
-        .enter()
-        .append("rect")
+        // .enter()
+        .join("rect")
         .attr("width", styles.candleTailWidth)
         .attr("height", (d) => {
           return d.open > d.close
@@ -307,15 +307,15 @@ export const CandleSticksChart = () => {
     candleStickBodyContainerRef,
   ]);
 
-  useEffect(() => {
-    if (mainSvgContainerRef.current) {
-    }
+  // useEffect(() => {
+  //   if (mainSvgContainerRef.current) {
+  //   }
 
-    console.log(
-      "what is current",
-      mainSvgContainerRef?.current?.width?.baseVal?.value
-    );
-  }, [mainSvgContainerRef]);
+  //   console.log(
+  //     "what is current",
+  //     mainSvgContainerRef?.current?.width?.baseVal?.value
+  //   );
+  // }, [mainSvgContainerRef]);
 
   return (
     <div
@@ -351,7 +351,7 @@ export const CandleSticksChart = () => {
                 zoomRange.xZoomRange1,
                 zoomRange.xZoomRange2,
                 mainSvgContainerRef?.current?.width?.baseVal?.value,
-                zoomRange.dataRange,
+                data,
                 styles.candleWidthDate
               );
 
