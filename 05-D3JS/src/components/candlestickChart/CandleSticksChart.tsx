@@ -3,6 +3,12 @@ import * as d3 from "d3";
 import { StockType } from "./stockData";
 import { useEffect, useRef, MouseEvent, useState } from "react";
 
+type MouseEventData = {
+  isMouseDown: boolean;
+  panTargetedLocationDate: number;
+  zoomFactor: number;
+};
+
 // TODO: Layout understand this and convert to react
 const parseDate = (dateStr: string) => new Date(dateStr);
 
@@ -15,43 +21,71 @@ const getSvgPointRelativeToViewPort = (
   }
 
   const pt = tagRef.createSVGPoint();
+
+  // if (evt.touches && evt.touches[0]) {
+  //   pt.x = evt.touches[0].clientX;
+  //   pt.y = evt.touches[0].clientY;
+  // } else {
+  //   pt.x = evt.clientX;
+  //   pt.y = evt.clientY;
+  // }
+
   pt.x = event.clientX;
   pt.y = event.clientY;
 
   return pt.matrixTransform(tagRef.getScreenCTM()?.inverse());
 };
 
-/**
- * // need to understand location first
-   let dateWidth = this.#zoomRange2 - this.#zoomRange1; // current side which represent by date
+// #handleScrollZoom(e) {
+//   let location = getCursorPoint(this.#objectIDs.svgId, e.sourceEvent);
+//   this.#zoomFactor *= e.transform.k > 1 ? 1.1 : 0.9;
 
-    let width = document.getElementById(`${this.#objectIDs.candleContainerId}`)
-      .width.baseVal.value; // width of the container
+//   let width = parseDate(this.#minMaxDate[1]) - parseDate(this.#minMaxDate[0]);
 
-    // location is the x point on the svg ( is the moved location )
-    let fraction = location / width; // what is fraction represent??
-    // if width is window size
-    // what is location??
-    // fraction * dateWidth meant much relative date window size moved;
+//   let newWidth = Math.round(width / this.#zoomFactor);
 
-    let newZoomRange1 = this.#panTargetDate - fraction * dateWidth; // pan starting location (y) on the grid
-    let newZoomRange2 = newZoomRange1 + dateWidth; // extend by fix width
+//   let svgWidth = document.getElementById(
+//     `${this.#objectIDs.candleContainerId}`
+//   ).width.baseVal.value;
 
-    Get all data that's in range of the panning
-    let filteredData = this.data.filter((x) => { 
-      return (
-        parseDate(x.date).getTime() > newZoomRange1 - this.#candleWidthDate &&
-        parseDate(x.date).getTime() < newZoomRange2 + this.#candleWidthDate
-      );
-    });
+//   let target = this.#xScaleFunc.invert(location.x).getTime();
+//   let coeff = Math.round((newWidth * location.x) / svgWidth);
+//   let left = target - coeff;
+//   let right = left + newWidth;
 
-    // set zoom range
-    this.#zoomRange1 = newZoomRange1;
-    this.#zoomRange2 = newZoomRange2;
+//   this.#zoomRange1 = left;
+//   this.#zoomRange2 = right;
 
-    this.#filteredData = filteredData;
-    this.draw();
- */
+//   let filteredData = this.data.filter((x) => {
+//     return (
+//       parseDate(x.date).getTime() > left - this.#candleWidthDate &&
+//       parseDate(x.date).getTime() < right + this.#candleWidthDate
+//     );
+//   });
+
+//   this.#filteredData = filteredData;
+
+//   this.draw();
+// }
+
+const handleZoom = (
+  event: any,
+  tagRef: SVGSVGElement | null,
+  mouseEventRef: React.MutableRefObject<MouseEventData>,
+  minMaxDate: [Date, Date],
+  xScale: d3.ScaleTime<number, number, never>
+) => {
+  const svgCoordinates = getSvgPointRelativeToViewPort(
+    tagRef,
+    event.sourceEvent
+  );
+  mouseEventRef.current.zoomFactor = event.transform.k > 1 ? 1.1 : 0.9; // if zoom is greater than 1 increase by 10% else decrease by 10%
+  const width = minMaxDate[1].getTime() - minMaxDate[0].getTime(); // always the same because is always the max date window size
+  const newWidth = Math.round(width / mouseEventRef.current.zoomFactor);
+  const svgWidth = tagRef?.width.baseVal.value;
+  const mouseXAxisPosition = xScale.invert(svgCoordinates?.x ?? 0).getTime(); // current mouse zoom positon on X axis in time/ms
+};
+
 const handlePan = (
   moveToX: number,
   svgMouseXLocation: number,
@@ -75,6 +109,11 @@ const handlePan = (
 
   return { newXRange1, newXRange2, newDataRange };
 };
+
+// const filter = (event) => {
+//   console.log(event);
+//   return event.type === "wheel";
+// };
 
 // find the min distance between two times and use that as r width
 const calculateCandleWidthDate = (filteredData: StockType[]) => {
@@ -137,6 +176,7 @@ const getStyles = () => {
     upCandlesStroke: "#089981",
     downCandlesStroke: "#e13443",
     candleWidthDate,
+    minMaxDate,
   };
 };
 
@@ -180,9 +220,10 @@ export const CandleSticksChart = () => {
   const candleStickBodyContainerRef = useRef<SVGGElement | null>(null);
   const candleLowerWickContainerRef = useRef<SVGGElement | null>(null);
   const mainSvgContainerRef = useRef<SVGSVGElement | null>(null);
-  const mouseEventRef = useRef<any>({
+  const mouseEventRef = useRef<MouseEventData>({
     isMouseDown: false,
     panTargetedLocationDate: 0,
+    zoomFactor: 1,
   });
   const [zoomRange, setZoomRange] = useState({
     xZoomRange1: styles.xZoomRange1,
@@ -203,6 +244,19 @@ export const CandleSticksChart = () => {
     .reverse() as [number, number];
 
   const yScale = d3.scaleLinear(yAxisDomain, [0, styles.svgHeight]);
+
+  const zoom = d3
+    .zoom<SVGSVGElement, unknown>()
+    .scaleExtent([1, 32])
+    .on("zoom", (e) => {
+      handleZoom(
+        e,
+        mainSvgContainerRef.current,
+        mouseEventRef,
+        styles.minMaxDate as any,
+        xScale
+      );
+    });
 
   useEffect(() => {
     if (xAxis.current) {
@@ -307,15 +361,21 @@ export const CandleSticksChart = () => {
     candleStickBodyContainerRef,
   ]);
 
-  // useEffect(() => {
-  //   if (mainSvgContainerRef.current) {
-  //   }
+  useEffect(() => {
+    if (mainSvgContainerRef.current) {
+      d3.select(mainSvgContainerRef.current)
+        .call(zoom)
+        .on("mousedown.zoom", null)
+        .on("touchstart.zoom", null)
+        .on("touchmove.zoom", null)
+        .on("touchend.zoom", null);
+    }
 
-  //   console.log(
-  //     "what is current",
-  //     mainSvgContainerRef?.current?.width?.baseVal?.value
-  //   );
-  // }, [mainSvgContainerRef]);
+    // console.log(
+    //   "what is current",
+    //   mainSvgContainerRef?.current?.width?.baseVal?.value
+    // );
+  }, [mainSvgContainerRef]);
 
   return (
     <div
