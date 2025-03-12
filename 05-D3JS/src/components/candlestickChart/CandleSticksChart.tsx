@@ -81,17 +81,21 @@ const handleZoom = (
     event.sourceEvent
   );
 
-  mouseEventRef.current.zoomFactor *= event.transform.k > 1 ? 1.1 : 0.9; // if zoom is greater than 1 increase by 10% else decrease by 10%
+  console.log("direction", event.sourceEvent.deltaY);
+
+  mouseEventRef.current.zoomFactor *= event.sourceEvent.deltaY < 0 ? 1.1 : 0.9; // if zoom is greater than 1 increase by 10% else decrease by 10%
+
   const width = minMaxDate[1].getTime() - minMaxDate[0].getTime(); // always the same because is always the max date window size
   const newWidth = Math.round(width / mouseEventRef.current.zoomFactor);
   const svgWidth = tagRef?.width.baseVal.value ?? 1;
+
+  // console.log(event.transform.k);
+
   const mouseXAxisPosition = xScale.invert(svgCoordinates?.x ?? 0).getTime(); // current mouse zoom positon on X axis in time/ms
   const mouseRelativePostion = (svgCoordinates?.x ?? 0) / svgWidth;
   const zoomCutOffRange = Math.round(newWidth * mouseRelativePostion);
   const newLeftRange = mouseXAxisPosition - zoomCutOffRange;
   const newRightRange = mouseXAxisPosition + zoomCutOffRange;
-
-  // console.log(mouseRelativePostion);
 
   const newXRange1 = newLeftRange;
   const newXRange2 = newRightRange;
@@ -269,6 +273,7 @@ export const CandleSticksChart = () => {
     .zoom<SVGSVGElement, unknown>()
     // .scaleExtent([1, 100])
     .on("zoom", (e) => {
+      // console.log("Zoom", e.transform.k);
       const newDataRanges = handleZoom(
         e,
         mainSvgContainerRef.current,
