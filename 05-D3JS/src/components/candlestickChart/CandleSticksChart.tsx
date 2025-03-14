@@ -84,16 +84,17 @@ const handleZoom = (
   mouseEventRef.current.zoomFactor *= event.sourceEvent.deltaY < 0 ? 1.1 : 0.9; // if zoom is greater than 1 increase by 10% else decrease by 10%
 
   const width = minMaxDate[1].getTime() - minMaxDate[0].getTime(); // always the same because is always the max date window size
-  const newWidth = Math.round(width / mouseEventRef.current.zoomFactor);
-  const svgWidth = tagRef?.width.baseVal.value ?? 1;
+  const newWidth = Math.round(width / mouseEventRef.current.zoomFactor); // new enlarged or shrink width
+  const svgWidth = tagRef?.width.baseVal.value ?? 0;
 
   // console.log(event.transform.k);
 
   const mouseXAxisPosition = xScale.invert(svgCoordinates?.x ?? 0).getTime(); // current mouse zoom positon on X axis in time/ms
-  const mouseRelativePostion = (svgCoordinates?.x ?? 0) / svgWidth;
-  const zoomCutOffRange = Math.round(newWidth * mouseRelativePostion);
-  const newLeftRange = mouseXAxisPosition - zoomCutOffRange;
-  const newRightRange = newLeftRange + zoomCutOffRange;
+  const mouseRelativePostion = (svgCoordinates?.x ?? 0) / svgWidth; // relative mouse position to svg width
+  const zoomCutOffRange = Math.round(newWidth * mouseRelativePostion); // if relative position of mouse is 20% to the left of old svg width
+
+  const newLeftRange = mouseXAxisPosition - zoomCutOffRange; // new left boundry
+  const newRightRange = newLeftRange + newWidth; // new right boundry
 
   const newXRange1 = newLeftRange;
   const newXRange2 = newRightRange;
