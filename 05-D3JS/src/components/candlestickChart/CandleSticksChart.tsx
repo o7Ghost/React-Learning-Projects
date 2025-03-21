@@ -68,6 +68,7 @@ const getSvgPointRelativeToViewPort = (
 //   this.draw();
 // }
 
+// why the zoom logic should be this complicated??
 const handleZoom = (
   event: any,
   tagRef: SVGSVGElement | null,
@@ -93,9 +94,13 @@ const handleZoom = (
   const mouseRelativePostion = (svgCoordinates?.x ?? 0) / svgWidth; // relative mouse position to svg width
   const zoomCutOffRange = Math.round(newWidth * mouseRelativePostion); // if relative position of mouse is 20% to the left of old svg width
 
+  console.log("inverted coordinates", xScale.invert(svgCoordinates?.x ?? 0));
+
   const newLeftRange = mouseXAxisPosition - zoomCutOffRange; // new left boundry
   const newRightRange = newLeftRange + newWidth; // new right boundry
 
+  // console.log(new Date(newLeftRange), new Date(newRightRange));
+  // console.log(new Date(newLeftRange));
   const newXRange1 = newLeftRange;
   const newXRange2 = newRightRange;
 
@@ -272,7 +277,6 @@ export const CandleSticksChart = () => {
     .zoom<SVGSVGElement, unknown>()
     // .scaleExtent([0.5, 2])
     .on("zoom", (e) => {
-      // console.log("Zoom", e.transform.k);
       const newDataRanges = handleZoom(
         e,
         mainSvgContainerRef.current,
@@ -407,7 +411,7 @@ export const CandleSticksChart = () => {
     //   "what is current",
     //   mainSvgContainerRef?.current?.width?.baseVal?.value
     // );
-  }, [mainSvgContainerRef]);
+  }, [mainSvgContainerRef, zoom]);
 
   return (
     <div
