@@ -94,8 +94,6 @@ const handleZoom = (
   const mouseRelativePostion = (svgCoordinates?.x ?? 0) / svgWidth; // relative mouse position to svg width
   const zoomCutOffRange = Math.round(newWidth * mouseRelativePostion); // if relative position of mouse is 20% to the left of old svg width
 
-  console.log("inverted coordinates", xScale.invert(svgCoordinates?.x ?? 0));
-
   const newLeftRange = mouseXAxisPosition - zoomCutOffRange; // new left boundry
   const newRightRange = newLeftRange + newWidth; // new right boundry
 
@@ -241,6 +239,23 @@ const styles = getStyles();
 //     };
 //   };
 
+const calculateCandleWidth = (
+  candleLockerWidthDate: number,
+  dateRange: StockType[],
+  xScale: d3.ScaleTime<number, number, never>
+) => {
+  const minMax = d3.extent(
+    dateRange.map((dateRange) => parseDate(dateRange.date))
+  );
+
+  const tempCandleWidth =
+    xScale(
+      (minMax[0]?.getTime() ?? candleLockerWidthDate) + candleLockerWidthDate
+    ) - xScale(minMax[0]?.getTime() ?? 0);
+
+  return tempCandleWidth - tempCandleWidth * 0.3;
+};
+
 export const CandleSticksChart = () => {
   const xAxis = useRef<SVGGElement | null>(null);
   const yAxis = useRef<SVGGElement | null>(null);
@@ -338,20 +353,27 @@ export const CandleSticksChart = () => {
     }
 
     if (candleStickBodyContainerRef.current) {
-      // console.log("HERE??", zoomRange.dataRange);
+      const bodyCandleWidth = calculateCandleWidth(
+        styles.candleWidthDate,
+        zoomRange.dataRange,
+        xScale
+      );
+
+      console.log(bodyCandleWidth);
+
       d3.select(candleStickBodyContainerRef.current)
         .selectAll("rect")
         .data(zoomRange.dataRange)
         // .enter()
         .join("rect")
-        .attr("width", 5)
+        .attr("width", bodyCandleWidth)
         .attr("height", (d) => {
           return d.open > d.close
             ? yScale(d.close) - yScale(d.open)
             : yScale(d.open) - yScale(d.close);
         })
         .attr("x", (d) => {
-          return xScale(parseDate(d.date)) - 5 / 2;
+          return xScale(parseDate(d.date)) - bodyCandleWidth / 2;
         })
         .attr("y", (d) => {
           return d.open > d.close ? yScale(d.open) : yScale(d.close);
@@ -406,11 +428,6 @@ export const CandleSticksChart = () => {
         .on("touchmove.zoom", null)
         .on("touchend.zoom", null);
     }
-
-    // console.log(
-    //   "what is current",
-    //   mainSvgContainerRef?.current?.width?.baseVal?.value
-    // );
   }, [mainSvgContainerRef, zoom]);
 
   return (
@@ -477,9 +494,16 @@ export const CandleSticksChart = () => {
       >
         <g ref={xAxis} transform={`translate(0, 10)`} />
         <g ref={yAxis} transform={`translate(5, 0)`} />
-        <g ref={candleHighWickContainerRef} />
-        <g ref={candleStickBodyContainerRef} />
-        <g ref={candleLowerWickContainerRef} />
+        <svg
+          style={{
+            height: styles.svgHeight,
+            width: styles.svgWidth,
+          }}
+        >
+          <g ref={candleHighWickContainerRef} />
+          <g ref={candleStickBodyContainerRef} />
+          <g ref={candleLowerWickContainerRef} />
+        </svg>
       </svg>
     </div>
   );
